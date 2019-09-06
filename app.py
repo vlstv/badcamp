@@ -45,6 +45,10 @@ def handle_start(message):
             song = get_songs(message.text)
             with ClusterRpcProxy(RABBIT) as rpc:
                 rpc.downloader.download.call_async(song, message.chat.id)
+        elif 'album' in message.text:
+            song = get_songs(message.text)
+            with ClusterRpcProxy(RABBIT) as rpc:
+                rpc.downloader.download.call_async(song, message.chat.id)
     except Exception as e:
         bot.send_message(message.chat.id, e)
 
