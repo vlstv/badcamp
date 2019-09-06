@@ -1,0 +1,7 @@
+requests
+lxml
+flask
+redis
+wgetter
+pyTelegramBotAPI
+mutagen
