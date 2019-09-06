@@ -26,15 +26,7 @@ def handle_start(message):
     album_key = 'user:{}:albums'.format(message.chat.id)
 
     try:
-        if re.match(r'https:\/\/*.*\.bandcamp\.com\/', message.text) and 'track' not in message.text:
-            albums = get_albums(message.text)
-            r.set(album_key, json.dumps(albums), 300)
-            album_list = ''
-            for album in albums:
-                text = '{} - {}\n'.format(str(album['id']), album['name'])
-                album_list += text
-            bot.send_message(message.chat.id, album_list)
-        elif message.text.isdigit() == True:
+        if message.text.isdigit() == True:
             albums = json.loads(r.get(album_key))
             for album in albums:
                 if album["id"] == int(message.text):
@@ -49,6 +41,14 @@ def handle_start(message):
             song = get_songs(message.text)
             with ClusterRpcProxy(RABBIT) as rpc:
                 rpc.downloader.download.call_async(song, message.chat.id)
+        elif re.match(r'https:\/\/*.*\.bandcamp\.com\/', message.text) and 'track' not in message.text:
+            albums = get_albums(message.text)
+            r.set(album_key, json.dumps(albums), 300)
+            album_list = ''
+            for album in albums:
+                text = '{} - {}\n'.format(str(album['id']), album['name'])
+                album_list += text
+            bot.send_message(message.chat.id, album_list)
     except Exception as e:
         bot.send_message(message.chat.id, e)
 
