@@ -45,6 +45,26 @@ def get_albums(url):
         except:
             album_name = tree.xpath('//a[@href="'+ album +'"]//p[@class="title"]/text()')[0]
             album_name = re.findall('(?:[^\\n\\ ]+)(?:[^\n]+)', album_name)[0]
-        albums.append({'id': id, 'name': album_name, 'url': url[:-1]+ album})
+        albums.append({'id': id, 'name': album_name, 'url': url + album})
         id+=1
     return albums
+
+def search(album_name):
+    link = "https://bandcamp.com/api/fuzzysearch/1/autocomplete?q={}".format(album_name)
+    response = requests.get(link).json()
+    search_results = response['auto']['results']
+    result_list = []
+    for result in search_results:
+        resource_info = {}
+        if result['type'] == 'a':
+            resource_info['type'] = 'album'
+            resource_info['band'] = result['band_name']
+            resource_info['album'] = result['name']
+            resource_info['url'] = result['url']
+            result_list.append(resource_info)
+        if result['type'] == 'b':
+            resource_info['type'] = 'band'
+            resource_info['band'] = result['name']
+            resource_info['url'] = result['url']
+            result_list.append(resource_info)
+    return result_list
