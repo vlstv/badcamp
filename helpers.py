@@ -14,7 +14,14 @@ def call_get_albums(message, chat_id):
     albums = get_albums(url)
     key = types.InlineKeyboardMarkup()
     for album in albums:
-        key.add(types.InlineKeyboardButton(album['name'], callback_data=album['url']))
+        if len(album['url']) <= 64:
+            callback = album['url']
+        else:
+            search_key = 'user:{}:search'.format(chat_id)
+            r.hset(search_key, 'album', album['url'])
+            r.expire(search_key, 120)
+            callback = 'album'
+        key.add(types.InlineKeyboardButton(album['name'], callback_data=callback))
     text = 'Select album:'
     bot.send_message(chat_id, text, reply_markup=key)
 
