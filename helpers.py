@@ -1,4 +1,4 @@
-import time;
+import time
 import telebot
 from telebot import types
 from connectors import r, bot
