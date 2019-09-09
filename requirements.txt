@@ -1,0 +1,8 @@
+requests
+lxml
+flask
+redis
+pyTelegramBotAPI
+mutagen
+nameko
+gunicorn
