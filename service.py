@@ -9,6 +9,7 @@ import string
 import random
 import json
 import os
+import base64
 
 def mutate(file, artist, name):
     try:
@@ -69,10 +70,11 @@ class Downloader(object):
                 for num, info in song.iteritems():
                     name = info[0]
                     url = info[1]
+                    tmp_song = base64.b64encode(name.encode()).decode('utf-8')
                     r = requests.get(url)
-                    with open('{}/{}/{}.mp3'.format(UPLOAD_DIR, tmp_dir, name), 'wb') as f:
+                    with open('{}/{}/{}.mp3'.format(UPLOAD_DIR, tmp_dir, tmp_song), 'wb') as f:
                         f.write(r.content)
-                    order_list.append((num, '{}/{}/{}.mp3'.format(UPLOAD_DIR, tmp_dir, name), name))
+                    order_list.append((num, '{}/{}/{}.mp3'.format(UPLOAD_DIR, tmp_dir, tmp_song), name))
             #call uploader
             self.uploader.upload.call_async(chat_id, order_list, tmp_dir, cover_path, artist, album)
         except Exception as e:
