@@ -63,7 +63,7 @@ class Downloader(object):
             os.mkdir('{}/{}'.format(UPLOAD_DIR,tmp_dir))
             #downloadcover
             r = requests.get(cover)
-            cover_path = '{}/{}/{}.jpeg'.format(UPLOAD_DIR, tmp_dir, album)
+            cover_path = '{}/{}/{}.jpeg'.format(UPLOAD_DIR, tmp_dir, random_string)
             with open(cover_path, 'wb') as f:
                 f.write(r.content)
             #download songs
