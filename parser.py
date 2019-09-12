@@ -4,7 +4,7 @@ import json
 from lxml import html
 
 def get_meta(response):
-    tree = html.fromstring(response.content)
+    tree = html.fromstring(response.text)
     cover = tree.xpath('//img[@itemprop="image"]/@src')[0]
     meta = tree.xpath('//meta[@name="title"]/@content')[0]
     meta = meta.split(', by ')
@@ -39,7 +39,7 @@ def get_albums(url):
     id = 1
     albums = []
     for album in albums_list:
-        tree = html.fromstring(response.content)
+        tree = html.fromstring(response.text)
         try:
             album_name = tree.xpath('//div[@class="trackTitle"]//a[@href="'+ album +'"]/text()')[0]
         except:

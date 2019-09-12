@@ -10,6 +10,9 @@ import random
 import json
 import os
 
+def random_string():
+    return ''.join(random.choice(string.ascii_lowercase + string.digits) for i in range(8))
+
 def mutate(file, artist, name):
     try:
         try:
@@ -56,7 +59,7 @@ class Downloader(object):
             album = obj["album"]
             songs = obj["songs"]
             cover = obj["cover"]
-            tmp_dir =  ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(6))
+            tmp_dir =  random_string()
             os.mkdir('{}/{}'.format(UPLOAD_DIR,tmp_dir))
             #downloadcover
             r = requests.get(cover)
@@ -66,10 +69,10 @@ class Downloader(object):
             #download songs
             order_list = []
             for song in songs:
-                for num, info in song.iteritems():
+                for num, info in song.items():
                     name = info[0]
                     url = info[1]
-                    tmp_song = ''.join(random.choice(string.ascii_lowercase + string.digits) for i in range(8))
+                    tmp_song = random_string()
                     r = requests.get(url)
                     with open('{}/{}/{}.mp3'.format(UPLOAD_DIR, tmp_dir, tmp_song), 'wb') as f:
                         f.write(r.content)
