@@ -1,9 +1,6 @@
 from nameko.rpc import rpc, RpcProxy
 from localsettings import UPLOAD_DIR
 from connectors import bot
-import mutagen
-from mutagen.id3 import ID3, APIC
-from mutagen.easyid3 import EasyID3
 import requests
 import string
 import random
@@ -12,22 +9,6 @@ import os
 
 def random_string():
     return ''.join(random.choice(string.ascii_lowercase + string.digits) for i in range(8))
-
-def mutate(file, artist, name):
-    try:
-        try:
-            audiofile = EasyID3(file)
-            audiofile['artist'] = artist
-            audiofile['title'] = name
-            audiofile.save()
-        except mutagen.id3.ID3NoHeaderError:
-            audiofile = mutagen.File(file, easy=True)
-            audiofile.add_tags()
-            audiofile['artist'] = artist
-            audiofile['title'] = name
-            audiofile.save()
-    except Exception as e:
-        return e
 
 class Uploader(object):
     name = "uploader"
@@ -40,9 +21,8 @@ class Uploader(object):
             for info in order_list:
                 file = info[1]
                 name = info[2]
-                mutate(file, artist, name)
                 audio = open(file, 'rb')
-                bot.send_audio(chat_id, audio)
+                bot.send_audio(chat_id, audio, performer=artist, title=name)
                 os.remove(file)
             os.remove(cover_path)
             os.rmdir('{}/{}'.format(UPLOAD_DIR, tmp_dir))
