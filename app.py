@@ -64,7 +64,7 @@ def handle_start(message):
 def callback_inline(call):
     try:
         if call.message:
-            if 'album:' in call.data:
+            if 'album' in call.data:
                 call_get_songs(call.data, call.message.chat.id)
             else:
                 call_get_albums(call.data, call.message.chat.id)
