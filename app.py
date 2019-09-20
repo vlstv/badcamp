@@ -1,6 +1,7 @@
 from localsettings import TOKEN, WEBHOOK_URL
 from parser import get_albums, get_songs, search
 from helpers import call_get_albums, call_get_songs
+from service import random_string
 from connectors import r, bot
 from flask import Flask
 import telebot
@@ -33,13 +34,13 @@ def handle_search(message):
             else:
                 search_key = 'user:{}:search'.format(message.chat.id)
                 if result['type'] == 'album':
-                    r.hset(search_key, 'album', result['url'])
-                    r.expire(search_key, 120)
-                    callback = 'album'
+                    callback = 'album:{}'.format(random_string())
+                    r.hset(search_key, callback, result['url'])
+                    r.expire(search_key, 240)
                 elif result['type'] == 'band':
-                    r.hset(search_key, 'album', result['url'])
-                    r.expire(search_key, 120)
-                    callback = 'band'
+                    callback = 'band:{}'.format(random_string())
+                    r.hset(search_key, callback, result['url'])
+                    r.expire(search_key, 240)
             if result['type'] == 'album':
                 key.add(types.InlineKeyboardButton('{} - {} ({})'.format(result['band'], result['album'], result['type']), callback_data=callback))
             if result['type'] == 'band':
@@ -63,7 +64,7 @@ def handle_start(message):
 def callback_inline(call):
     try:
         if call.message:
-            if 'album' in call.data:
+            if 'album:' in call.data:
                 call_get_songs(call.data, call.message.chat.id)
             else:
                 call_get_albums(call.data, call.message.chat.id)
