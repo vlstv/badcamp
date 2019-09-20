@@ -5,10 +5,11 @@ from connectors import r, bot
 from localsettings import RABBIT
 from parser import get_albums, get_songs
 from nameko.standalone.rpc import ClusterRpcProxy
+from service import random_string
 
 def call_get_albums(message, chat_id):
-    if message == 'band':
-        url = r.hget('user:{}:search', 'band')
+    if 'band:' in message:
+        url = r.hget('user:{}:search', message)
     else:
         url = message
     albums = get_albums(url)
@@ -18,9 +19,9 @@ def call_get_albums(message, chat_id):
             callback = album['url']
         else:
             search_key = 'user:{}:search'.format(chat_id)
-            r.hset(search_key, 'album', album['url'])
-            r.expire(search_key, 120)
-            callback = 'album'
+            callback = 'album:{}'.format(random_string())
+            r.hset(search_key, callback, album['url'])
+            r.expire(search_key, 240)
         key.add(types.InlineKeyboardButton(album['name'], callback_data=callback))
     text = 'Select album:'
     bot.send_message(chat_id, text, reply_markup=key)
@@ -30,8 +31,8 @@ def call_get_songs(message, chat_id):
     timestamp = int(time.time())
     r.zadd('active_users', {chat_id: timestamp})
     r.expire('active_users', 604800)
-    if message == 'album':
-        url = r.hget('user:{}:search'.format(chat_id), 'album')
+    if 'album:' in message:
+        url = r.hget('user:{}:search'.format(chat_id), message)
     else:
         url = message
     songs = get_songs(url)
