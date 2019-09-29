@@ -38,7 +38,7 @@ class SpootySearch():
         result_list = []
         for album in albums:
             resource_info = {}
-            resource_info['album'] = album['name']
+            resource_info['name'] = album['name']
             resource_info['url'] = album['id']
             result_list.append(resource_info)
         return result_list
