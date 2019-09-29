@@ -47,7 +47,7 @@ def call_get_spoti_albums(message, chat_id):
     albums = spotisearch.get_albums(url)
     key = types.InlineKeyboardMarkup()
     for album in albums:
-        callback = 'spotify_album:' + album['url']
+        callback = 'spotify_al:' + album['url']
         key.add(types.InlineKeyboardButton(album['name'], callback_data=callback))
     text = 'Select album:'
     bot.send_message(chat_id, text, reply_markup=key)

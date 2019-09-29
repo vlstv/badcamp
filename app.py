@@ -86,7 +86,7 @@ def callback_inline(call):
             elif 'spotify_artist' in call.data:
                 a = call.data.split(':')
                 call_get_spoti_albums(a[1], call.message.chat.id)
-            elif 'spotify_album' in call.data:
+            elif 'spotify_al' in call.data:
                 a = call.data.split(':')
                 call_get_spoti_albums(a[1], call.message.chat.id)
             else:
