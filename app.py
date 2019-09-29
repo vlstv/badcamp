@@ -1,6 +1,6 @@
 from localsettings import TOKEN, WEBHOOK_URL
 from parser import get_albums, get_songs, search
-from helpers import call_get_albums, call_get_songs
+from helpers import call_get_albums, call_get_songs, call_get_spoti_albums
 from service import random_string
 from connectors import r, bot
 from flask import Flask
@@ -9,6 +9,7 @@ from telebot import types
 import flask
 import json
 import re
+from spotisearch import SpootySearch
 
 app = Flask(__name__)
 
@@ -50,6 +51,22 @@ def handle_search(message):
     except Exception as e:
         bot.send_message(message.chat.id, e)
 
+#spotiserch test
+@bot.message_handler(commands=['spoti'])
+def handle_spoti(message):
+    try:
+        arg = message.text.replace('/spoti ', '')
+        spootisearch = SpootySearch()
+        results = spootisearch.get_artists(arg)
+        key = types.InlineKeyboardMarkup()
+        for result in results:
+            callback = 'spotify_artist:' + result['url']
+            key.add(types.InlineKeyboardButton('{} ({})'.format(result['band'], result['type']), callback_data=callback))
+        text = 'Select resource:'
+        bot.send_message(message.chat.id, text, reply_markup=key)
+    except Exception as e:
+        bot.send_message(message.chat.id, e)
+
 @bot.message_handler(content_types=['text'])
 def handle_start(message):
     try:
@@ -66,6 +83,12 @@ def callback_inline(call):
         if call.message:
             if 'album' in call.data:
                 call_get_songs(call.data, call.message.chat.id)
+            elif 'spotify_artist' in call.data:
+                a = call.data.split(':')
+                call_get_spoti_albums(a[1], call.message.chat.id)
+            elif 'spotify_album' in call.data:
+                a = call.data.split(':')
+                call_get_spoti_albums(a[1], call.message.chat.id)
             else:
                 call_get_albums(call.data, call.message.chat.id)
     except Exception as e:

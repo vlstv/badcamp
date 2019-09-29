@@ -2,6 +2,9 @@ import requests
 import re
 import json
 from lxml import html
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials
+import youtube
 
 def get_meta(response):
     tree = html.fromstring(response.text)
