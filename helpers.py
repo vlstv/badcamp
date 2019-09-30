@@ -6,7 +6,6 @@ from localsettings import RABBIT
 from parser import get_albums, get_songs
 from nameko.standalone.rpc import ClusterRpcProxy
 from service import random_string
-from spotisearch import SpootySearch
 
 def call_get_albums(message, chat_id):
     if 'band:' in message:

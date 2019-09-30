@@ -6,7 +6,6 @@ import string
 import random
 import json
 import os
-import youtube_dl
 
 def random_string():
     return ''.join(random.choice(string.ascii_lowercase + string.digits) for i in range(8))
