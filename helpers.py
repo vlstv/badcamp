@@ -40,24 +40,3 @@ def call_get_songs(message, chat_id):
 
     with ClusterRpcProxy(RABBIT) as rpc:
         rpc.downloader.download.call_async(songs, chat_id)
-
-def call_get_spoti_albums(message, chat_id):
-    url = message
-    spotisearch = SpootySearch()
-    albums = spotisearch.get_albums(url)
-    key = types.InlineKeyboardMarkup()
-    for album in albums:
-        callback = 'spotify_al:' + album['url']
-        key.add(types.InlineKeyboardButton(album['name'], callback_data=callback))
-    text = 'Select album:'
-    bot.send_message(chat_id, text, reply_markup=key)
-
-def call_get_spoti_songs(message, chat_id):
-    timestamp = int(time.time())
-    r.zadd('active_users', {chat_id: timestamp})
-    r.expire('active_users', 604800)
-    url = message
-    spotisearch = SpootySearch()
-    songs = spotisearch.get_songs(url)
-    with ClusterRpcProxy(RABBIT) as rpc:
-        rpc.youtube_downloader.download.call_async(songs, chat_id)
