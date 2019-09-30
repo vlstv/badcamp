@@ -1,6 +1,6 @@
 from localsettings import TOKEN, WEBHOOK_URL
 from parser import get_albums, get_songs, search
-from helpers import call_get_albums, call_get_songs, call_get_spoti_albums
+from helpers import call_get_albums, call_get_songs, call_get_spoti_albums, call_get_spoti_songs
 from service import random_string
 from connectors import r, bot
 from flask import Flask
@@ -88,7 +88,7 @@ def callback_inline(call):
                 call_get_spoti_albums(a[1], call.message.chat.id)
             elif 'spotify_al' in call.data:
                 a = call.data.split(':')
-                call_get_spoti_albums(a[1], call.message.chat.id)
+                call_get_spoti_songs(a[1], call.message.chat.id)
             else:
                 call_get_albums(call.data, call.message.chat.id)
     except Exception as e:

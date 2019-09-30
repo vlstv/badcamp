@@ -87,15 +87,19 @@ class Youtube_downloader(object):
                         name = info[0]
                         url = info[1]
                         tmp_song = random_string()
-                        options = {
+                        download_options = {
                             'format': 'bestaudio/best',
-                            'extractaudio' : True,  
-                            'audioformat' : "mp3", 
-                            'outtmpl': '{}/{}/{}.mp3'.format(UPLOAD_DIR, tmp_dir, tmp_song),   
-                            'noplaylist' : True, 
+                            'outtmpl': '{}/{}/{}'.format(UPLOAD_DIR, tmp_dir, tmp_song) + '.%(ext)s',
+                            'nocheckcertificate': True,
+                            'postprocessors': [{
+                                'key': 'FFmpegExtractAudio',
+                                'preferredcodec': 'mp3',
+                                'preferredquality': '192',
+                                }]
                             }
-                        with youtube_dl.YoutubeDL(options) as ydl:
-                            ydl.download([url])
+
+                        with youtube_dl.YoutubeDL(download_options) as dl:
+                            dl.download([url])
                         order_list.append((num, '{}/{}/{}.mp3'.format(UPLOAD_DIR, tmp_dir, tmp_song), name))
                 self.uploader.upload.call_async(chat_id, order_list, tmp_dir, cover_path, artist, album)
             except Exception as e:
