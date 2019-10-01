@@ -41,6 +41,7 @@ class SpootySearch():
             resource_info['name'] = album['name']
             resource_info['url'] = album['id']
             result_list.append(resource_info)
+            result_list = { each['name'] : each for each in result_list}.values()
         return result_list
 
     def get_artists(self, q):
