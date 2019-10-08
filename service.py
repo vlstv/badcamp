@@ -1,5 +1,5 @@
 from nameko.rpc import rpc, RpcProxy
-from localsettings import UPLOAD_DIR
+from localsettings import UPLOAD_DIR, STORAGE_GROUP_ID
 from connectors import bot
 import requests
 import string
@@ -15,17 +15,24 @@ class Uploader(object):
     @rpc
     def upload(self, chat_id, order_list, tmp_dir, cover_path, artist, album):
         try:
+            album_messages = []
             #upload cover
             cover = open(cover_path, 'rb')
-            bot.send_photo(chat_id, cover, caption='{} - {}'.format(artist, album))
+            message = bot.send_photo(STORAGE_GROUP_ID, cover, caption='{} - {}'.format(artist, album), disable_notification=True)
+            album_messages.append(message.message_id)
             for info in order_list:
                 file = info[1]
                 name = info[2]
                 audio = open(file, 'rb')
-                bot.send_audio(chat_id, audio, performer=artist, title=name)
+                message = bot.send_audio(STORAGE_GROUP_ID, audio, performer=artist, title=name, disable_notification=True)
+                album_messages.append(message.message_id)
                 os.remove(file)
             os.remove(cover_path)
             os.rmdir('{}/{}'.format(UPLOAD_DIR, tmp_dir))
+            #forward from storage group
+            for album_message in album_messages:
+                bot.forward_message(chat_id, STORAGE_GROUP_ID, album_message)
+
         except Exception as e:
             return e
 
