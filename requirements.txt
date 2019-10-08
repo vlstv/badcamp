@@ -5,6 +5,3 @@ redis
 pyTelegramBotAPI
 nameko
 gunicorn
-spotipy
-youtube-python
-youtube_dl
