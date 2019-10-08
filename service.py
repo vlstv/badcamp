@@ -33,6 +33,8 @@ class Uploader(object):
             #forward from storage group
             for album_message in album_messages:
                 bot.forward_message(chat_id, STORAGE_GROUP_ID, album_message)
+        except Exception as e:
+            return e
 
 class Downloader(object):
     name = "downloader"
