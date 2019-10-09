@@ -17,10 +17,9 @@ class Uploader(object):
     def upload(self, chat_id, order_list, tmp_dir, cover_path, artist, album):
         try:
             album_messages = []
-            #upload cover
+            #upload cover to storage group
             cover = open(cover_path, 'rb')
-            message = bot.send_photo(STORAGE_GROUP_ID, cover, caption='{} - {}'.format(artist, album), disable_notification=True)
-            album_messages.append(message.message_id)
+            bot.send_photo(STORAGE_GROUP_ID, cover, caption='{} - {}'.format(artist, album), disable_notification=True)
             for info in order_list:
                 file = info[1]
                 name = info[2]
@@ -28,6 +27,9 @@ class Uploader(object):
                 message = bot.send_audio(STORAGE_GROUP_ID, audio, performer=artist, title=name, disable_notification=True)
                 album_messages.append(message.message_id)
                 os.remove(file)
+            #upload cover to chat
+            cover = open(cover_path, 'rb')
+            bot.send_photo(chat_id, cover, caption='{} - {}'.format(artist, album), disable_notification=True)
             os.remove(cover_path)
             os.rmdir('{}/{}'.format(UPLOAD_DIR, tmp_dir))
             #forward from storage group
