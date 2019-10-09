@@ -18,8 +18,8 @@ class Uploader(object):
         try:
             #save album in db
             cursor.execute('INSERT INTO albums (name, cover, artist) VALUES (%s, %s, %s)', (album, cover_url, artist))
-            album_id = cursor.lastrowid()
-
+            badcamp_db.commit()
+            album_id = cursor.lastrowid
             album_messages = []
             #upload cover to storage group
             cover = open(cover_path, 'rb')
@@ -41,9 +41,10 @@ class Uploader(object):
                 bot.forward_message(chat_id, STORAGE_GROUP_ID, album_message)
                 #save in db
                 cursor.execute('INSERT INTO songs (id, name, album_id) VALUES (%s, %s, %s)', (album_message, name, album_id))
-            badcamp_db.commit()
+                badcamp_db.commit()
         except Exception as e:
             return e
+
 
 class Downloader(object):
     name = "downloader"
