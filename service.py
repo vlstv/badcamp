@@ -1,6 +1,6 @@
 from nameko.rpc import rpc, RpcProxy
 from localsettings import UPLOAD_DIR, STORAGE_GROUP_ID
-from connectors import bot
+from connectors import bot, cursor, badcamp_db
 import requests
 import string
 import random
@@ -14,8 +14,12 @@ def random_string():
 class Uploader(object):
     name = "uploader"
     @rpc
-    def upload(self, chat_id, order_list, tmp_dir, cover_path, artist, album):
+    def upload(self, chat_id, order_list, tmp_dir, cover_path, artist, album, cover_url):
         try:
+            #save album in db
+            cursor.execute('INSERT INTO albums (name, cover, artist) VALUES (%s, %s, %s)', (album, cover_url, artist))
+            album_id = cursor.lastrowid()
+
             album_messages = []
             #upload cover to storage group
             cover = open(cover_path, 'rb')
@@ -35,6 +39,9 @@ class Uploader(object):
             #forward from storage group
             for album_message in album_messages:
                 bot.forward_message(chat_id, STORAGE_GROUP_ID, album_message)
+                #save in db
+                cursor.execute('INSERT INTO songs (id, name, album_id) VALUES (%s, %s, %s)', (album_message, name, album_id))
+            badcamp_db.commit()
         except Exception as e:
             return e
 
@@ -67,7 +74,7 @@ class Downloader(object):
                         f.write(r.content)
                     order_list.append((num, '{}/{}/{}.mp3'.format(UPLOAD_DIR, tmp_dir, tmp_song), name))
             #call uploader
-            self.uploader.upload.call_async(chat_id, order_list, tmp_dir, cover_path, artist, album)
+            self.uploader.upload.call_async(chat_id, order_list, tmp_dir, cover_path, artist, album, cover)
         except Exception as e:
             return e
 
@@ -109,6 +116,7 @@ class Youtube_downloader(object):
                         with youtube_dl.YoutubeDL(download_options) as dl:
                             dl.download([url])
                         order_list.append((num, '{}/{}/{}.mp3'.format(UPLOAD_DIR, tmp_dir, tmp_song), name))
-                self.uploader.upload.call_async(chat_id, order_list, tmp_dir, cover_path, artist, album)
+                self.uploader.upload.call_async(chat_id, order_list, tmp_dir, cover_path, artist, album, cover)
             except Exception as e:
                 return e
+

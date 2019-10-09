@@ -5,3 +5,8 @@ redis
 pyTelegramBotAPI
 nameko
 gunicorn
+mysql-connector
+gunicorn
+spotipy
+youtube-python
+youtube_dl
