@@ -29,7 +29,7 @@ class Uploader(object):
                 name = info[2]
                 audio = open(file, 'rb')
                 message = bot.send_audio(STORAGE_GROUP_ID, audio, performer=artist, title=name, disable_notification=True)
-                album_messages.append(message.message_id)
+                album_messages.append([name,message.message_id])
                 os.remove(file)
             #upload cover to chat
             cover = open(cover_path, 'rb')
@@ -38,9 +38,11 @@ class Uploader(object):
             os.rmdir('{}/{}'.format(UPLOAD_DIR, tmp_dir))
             #forward from storage group
             for album_message in album_messages:
-                bot.forward_message(chat_id, STORAGE_GROUP_ID, album_message)
+                name = album_message[0]
+                message_id = album_message[1]
+                bot.forward_message(chat_id, STORAGE_GROUP_ID, message_id)
                 #save in db
-                cursor.execute('INSERT INTO songs (id, name, album_id) VALUES (%s, %s, %s)', (album_message, name, album_id))
+                cursor.execute('INSERT INTO songs (id, name, album_id) VALUES (%s, %s, %s)', (message_id, name, album_id))
                 badcamp_db.commit()
         except Exception as e:
             return e
