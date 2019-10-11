@@ -60,4 +60,4 @@ def call_get_spoti_songs(message, chat_id):
     spotisearch = SpootySearch()
     songs = spotisearch.get_songs(url)
     with ClusterRpcProxy(RABBIT) as rpc:
-        rpc.youtube_downloader.download.call_async(songs, chat_id)
+        rpc.downloader.download.call_async(songs, chat_id)
