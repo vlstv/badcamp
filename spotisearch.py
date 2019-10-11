@@ -2,6 +2,7 @@ import json
 from lxml import html
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
+from connectors import bot
 import youtube
 import requests
 from service import random_string
@@ -14,7 +15,7 @@ class SpootySearch():
         self.spotify = spotipy.Spotify(client_credentials_manager=self.client_credentials_manager)
         self.youtube_api = youtube.API(client_id=YOUTUBE_ID, client_secret=YOUTUBE_SECRET, api_key=YOUTUBE_KEY)
 
-    def get_songs(self, id):
+    def get_songs(self, id, chat_id):
         results = self.spotify.album(id)
         artist = results["artists"][0]["name"]
         album = results["name"]
@@ -25,11 +26,14 @@ class SpootySearch():
         for song in songs:
             query = artist + song["name"]
             try:
-                url = self.search_youtube_parse(query)
+                try:
+                    url = self.search_youtube_parse(query)
+                except:
+                    url = self.search_youtube_api(query)
+                songs_list.append({id:[song["name"], url]})
+                id += 1 
             except:
-                url = self.search_youtube_api(query)
-            songs_list.append({id:[song["name"], url]})
-            id += 1 
+                bot.send_message(chat_id, 'Skipping track: {} \nReason: not found'.format(song["name"]))
         return {'artist': artist, 'album': album, 'cover': cover, "songs": songs_list}
 
     def get_albums(self, id):

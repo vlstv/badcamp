@@ -58,6 +58,6 @@ def call_get_spoti_songs(message, chat_id):
     r.expire('active_users', 604800)
     url = message
     spotisearch = SpootySearch()
-    songs = spotisearch.get_songs(url)
+    songs = spotisearch.get_songs(url, chat_id)
     with ClusterRpcProxy(RABBIT) as rpc:
         rpc.downloader.download.call_async(songs, chat_id)
