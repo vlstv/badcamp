@@ -66,7 +66,7 @@ def blame(chat_id, artist, album, song, url):
     cursor.execute('select songs.id, albums.id from songs , albums WHERE albums.name="{}" and albums.artist = "{}" and \
         songs.album_id = albums.id and songs.name="{}"'.format(album, artist, song))
     result = cursor.fetchall()
-    song_id = result[0]
-    album_id = result[1]
+    song_id = result[0][0]
+    album_id = result[0][1]
     with ClusterRpcProxy(RABBIT) as rpc:
         rpc.downloader.blame.call_async(chat_id, album_id, song_id, url, song, artist)

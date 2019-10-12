@@ -49,7 +49,9 @@ class Uploader(object):
     @rpc
     def upload_blame(self, chat_id, tmp_dir, song_path, artist, name, album_id, song_id):
         try:
-            message = bot.send_audio(STORAGE_GROUP_ID, song_path, performer=artist, title=name, disable_notification=True)
+            audio = open(song_path, 'rb')
+            print(song_path)
+            message = bot.send_audio(STORAGE_GROUP_ID, audio, performer=artist, title=name, disable_notification=True)
             new_message_id = message.message_id
             os.remove(song_path)
             os.rmdir('{}/{}'.format(UPLOAD_DIR, tmp_dir))
@@ -109,7 +111,7 @@ class Downloader(object):
             else:
                 order_element = download_badcamp(0, tmp_dir, tmp_song, url, name)
             song_path = order_element[1]
-            self.uploader.upload_blame.call_async(chat_id, tmp_dir, song_path, artist, name)
+            self.uploader.upload_blame.call_async(chat_id, tmp_dir, song_path, artist, name, album_id, song_id)
         except Exception as e:
             return e
 

@@ -32,7 +32,7 @@ def blame_song(message):
         album = args[1]
         song = args[2]
         url = args[3]
-        blame(message.chat_id, artist, album, song, url)
+        blame(message.chat.id, artist, album, song, url)
     except Exception as e:
         bot.send_message(message.chat.id, e)
 
