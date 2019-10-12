@@ -1,6 +1,6 @@
 from localsettings import TOKEN, WEBHOOK_URL
 from parser import get_albums, get_songs, search
-from helpers import call_get_albums, call_get_songs, call_get_spoti_albums, call_get_spoti_songs
+from helpers import call_get_albums, call_get_songs, call_get_spoti_albums, call_get_spoti_songs, blame
 from service import random_string
 from connectors import r, bot
 from flask import Flask
@@ -22,6 +22,19 @@ def webhook():
         return ''
     else:
         flask.abort(403)
+
+@bot.message_handler(commands=['blame'])
+def blame_song(message):
+    try:
+        args = message.text.replace('/blame ', '')
+        args = args.split('\n')
+        artist = args[0]
+        album = args[1]
+        song = args[2]
+        url = args[3]
+        blame(message.chat_id, artist, album, song, url)
+    except Exception as e:
+        bot.send_message(message.chat.id, e)
 
 @bot.message_handler(commands=['search'])
 def handle_search(message):

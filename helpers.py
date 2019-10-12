@@ -1,7 +1,7 @@
 import time
 import telebot
 from telebot import types
-from connectors import r, bot
+from connectors import r, bot, cursor, badcamp_db
 from localsettings import RABBIT
 from parser import get_albums, get_songs
 from nameko.standalone.rpc import ClusterRpcProxy
@@ -61,3 +61,12 @@ def call_get_spoti_songs(message, chat_id):
     songs = spotisearch.get_songs(url, chat_id)
     with ClusterRpcProxy(RABBIT) as rpc:
         rpc.downloader.download.call_async(songs, chat_id)
+
+def blame(chat_id, artist, album, song, url):
+    cursor.execute('select songs.id, albums.id from songs , albums WHERE albums.name="{}" and albums.artist = "{}" and \
+        songs.album_id = albums.id and songs.name="{}"'.format(album, artist, song))
+    result = cursor.fetchall()
+    song_id = result[0]
+    album_id = result[1]
+    with ClusterRpcProxy(RABBIT) as rpc:
+        rpc.downloader.blame.call_async(chat_id, album_id, song_id, url, song, artist)

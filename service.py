@@ -46,7 +46,22 @@ class Uploader(object):
                 badcamp_db.commit()
         except Exception as e:
             return e
-
+    @rpc
+    def upload_blame(self, chat_id, tmp_dir, song_path, artist, name, album_id, song_id):
+        try:
+            message = bot.send_audio(STORAGE_GROUP_ID, song_path, performer=artist, title=name, disable_notification=True)
+            new_message_id = message.message_id
+            os.remove(song_path)
+            os.rmdir('{}/{}'.format(UPLOAD_DIR, tmp_dir))
+            #insert new
+            cursor.execute('INSERT INTO songs (id, name, album_id) VALUES (%s, %s, %s)', (new_message_id, name, album_id))
+            badcamp_db.commit()
+            #delete old
+            cursor.execute('Delete from songs where id={}'.format(song_id))
+            badcamp_db.commit()
+            bot.send_message(chat_id, 'Done! You can now re-download the whole album')
+        except Exception as e:
+            return e
 
 class Downloader(object):
     name = "downloader"
@@ -83,6 +98,21 @@ class Downloader(object):
                 self.uploader.upload.call_async(chat_id, order_list, tmp_dir, cover_path, artist, album, cover)
         except Exception as e:
             return e
+    @rpc
+    def blame(self, chat_id, album_id, song_id, url, name, artist):
+        try:
+            tmp_dir =  random_string()
+            tmp_song =  random_string()
+            os.mkdir('{}/{}'.format(UPLOAD_DIR,tmp_dir))
+            if 'youtube' in url:
+                order_element = download_youtube(0, tmp_dir, tmp_song, url, name)
+            else:
+                order_element = download_badcamp(0, tmp_dir, tmp_song, url, name)
+            song_path = order_element[1]
+            self.uploader.upload_blame.call_async(chat_id, tmp_dir, song_path, artist, name)
+        except Exception as e:
+            return e
+
 
 def download_badcamp(num, tmp_dir, tmp_song, url, name):
     r = requests.get(url)
