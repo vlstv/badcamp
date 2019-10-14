@@ -36,7 +36,7 @@ def call_get_songs(message, chat_id):
         url = r.hget('user:{}:search'.format(chat_id), message)
     else:
         url = message
-    songs = get_songs(url)
+    songs = get_songs(url, chat_id)
 
     with ClusterRpcProxy(RABBIT) as rpc:
         rpc.downloader.download.call_async(songs, chat_id)
