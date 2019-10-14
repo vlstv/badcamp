@@ -75,31 +75,28 @@ class Downloader(object):
             album = obj["album"]
             songs = obj["songs"]
             cover = obj["cover"]
-            #check if already in db
-            if in_db(artist, album, chat_id) == False:
-                tmp_dir =  random_string()
-                os.mkdir('{}/{}'.format(UPLOAD_DIR,tmp_dir))
-                #downloadcover
-                r = requests.get(cover)
-                cover_path = '{}/{}/{}.jpeg'.format(UPLOAD_DIR, tmp_dir, random_string())
-                with open(cover_path, 'wb') as f:
-                    f.write(r.content)
-                #download songs
-                order_list = []
-                for song in songs:
-                    for num, info in song.items():
-                        name = info[0]
-                        url = info[1]
-                        tmp_song = random_string()
-                        if 'youtube' in url:
-                            order_element = download_youtube(num, tmp_dir, tmp_song, url, name)
-                        else:
-                            order_element = download_badcamp(num, tmp_dir, tmp_song, url, name)
-                        order_list.append(order_element)
-                #call uploader
-                self.uploader.upload.call_async(chat_id, order_list, tmp_dir, cover_path, artist, album, cover)
+            tmp_dir =  random_string()
+            os.mkdir('{}/{}'.format(UPLOAD_DIR,tmp_dir))
+            #downloadcover
+            r = requests.get(cover)
+            cover_path = '{}/{}/{}.jpeg'.format(UPLOAD_DIR, tmp_dir, random_string())
+            with open(cover_path, 'wb') as f:
+                f.write(r.content)
+            #download songs
+            order_list = []
+            for song in songs:
+                for num, info in song.items():
+                    name = info[0]
+                    url = info[1]
+                    tmp_song = random_string()
+                    if 'youtube' in url:
+                        order_element = download_youtube(num, tmp_dir, tmp_song, url, name)
+                    else:
+                        order_element = download_badcamp(num, tmp_dir, tmp_song, url, name)
+                    order_list.append(order_element)
+            #call uploader
+            self.uploader.upload.call_async(chat_id, order_list, tmp_dir, cover_path, artist, album, cover)
         except Exception as e:
-            print(e)
             return e
     @rpc
     def blame(self, chat_id, album_id, song_id, url, name, artist):
@@ -138,21 +135,3 @@ def download_youtube(num, tmp_dir, tmp_song, url, name):
     with youtube_dl.YoutubeDL(download_options) as dl:
         dl.download([url])
     return (num, '{}/{}/{}.mp3'.format(UPLOAD_DIR, tmp_dir, tmp_song), name)
-
-def in_db(artist, album, chat_id):
-    cursor.execute('SELECT * FROM albums where name=%s and artist=%s', (album, artist))
-    result = cursor.fetchall()
-    if len(result) != 0:
-        #forward downloaded messages
-        album_id = result[0][0]
-        album = result[0][1]
-        cover_url = result[0][2]
-        artist = result[0][3]
-        cursor.execute('SELECT id FROM songs where album_id=%s', (album_id,))
-        songs_ids = cursor.fetchall()
-        #send cover
-        bot.send_photo(chat_id, cover_url, caption='{} - {}'.format(artist, album), disable_notification=True)
-        for song_id in songs_ids:
-            bot.forward_message(chat_id, STORAGE_GROUP_ID, song_id[0])
-    else:
-        return False

@@ -8,6 +8,7 @@ import requests
 from service import random_string
 import os
 from localsettings import *
+from helpers import in_db
 
 class SpootySearch():
     def __init__(self):
@@ -21,20 +22,21 @@ class SpootySearch():
         album = results["name"]
         cover = results["images"][0]["url"]
         songs = results["tracks"]["items"]
-        id = 0
-        songs_list = []
-        for song in songs:
-            query = artist + song["name"]
-            try:
+        if in_db(artist, album, chat_id) == False:
+            id = 0
+            songs_list = []
+            for song in songs:
+                query = artist + song["name"]
                 try:
-                    url = self.search_youtube_parse(query)
+                    try:
+                        url = self.search_youtube_parse(query)
+                    except:
+                        url = self.search_youtube_api(query)
+                    songs_list.append({id:[song["name"], url]})
+                    id += 1 
                 except:
-                    url = self.search_youtube_api(query)
-                songs_list.append({id:[song["name"], url]})
-                id += 1 
-            except:
-                bot.send_message(chat_id, 'Skipping track: {} \nReason: not found'.format(song["name"]))
-        return {'artist': artist, 'album': album, 'cover': cover, "songs": songs_list}
+                    bot.send_message(chat_id, 'Skipping track: {} \nReason: not found'.format(song["name"]))
+            return {'artist': artist, 'album': album, 'cover': cover, "songs": songs_list}
 
     def get_albums(self, id):
         results = self.spotify.artist_albums(id)
