@@ -63,8 +63,8 @@ def call_get_spoti_songs(message, chat_id):
         rpc.downloader.download.call_async(songs, chat_id)
 
 def blame(chat_id, artist, album, song, url):
-    cursor.execute('select songs.id, albums.id from songs , albums WHERE albums.name="{}" and albums.artist = "{}" and \
-        songs.album_id = albums.id and songs.name="{}"'.format(album, artist, song))
+    cursor.execute('select songs.id, albums.id from songs , albums WHERE albums.name=%s and albums.artist=%s and \
+        songs.album_id = albums.id and songs.name=%s', (album, artist, song))
     result = cursor.fetchall()
     song_id = result[0][0]
     album_id = result[0][1]

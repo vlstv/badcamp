@@ -99,6 +99,7 @@ class Downloader(object):
                 #call uploader
                 self.uploader.upload.call_async(chat_id, order_list, tmp_dir, cover_path, artist, album, cover)
         except Exception as e:
+            print(e)
             return e
     @rpc
     def blame(self, chat_id, album_id, song_id, url, name, artist):
@@ -139,7 +140,7 @@ def download_youtube(num, tmp_dir, tmp_song, url, name):
     return (num, '{}/{}/{}.mp3'.format(UPLOAD_DIR, tmp_dir, tmp_song), name)
 
 def in_db(artist, album, chat_id):
-    cursor.execute('SELECT * FROM albums where name="{}" and artist="{}"'.format(album, artist))
+    cursor.execute('SELECT * FROM albums where name=%s and artist=%s', (album, artist))
     result = cursor.fetchall()
     if len(result) != 0:
         #forward downloaded messages
@@ -147,7 +148,7 @@ def in_db(artist, album, chat_id):
         album = result[0][1]
         cover_url = result[0][2]
         artist = result[0][3]
-        cursor.execute('SELECT id FROM songs where album_id={}'.format(album_id))
+        cursor.execute('SELECT id FROM songs where album_id=%s', (album_id,))
         songs_ids = cursor.fetchall()
         #send cover
         bot.send_photo(chat_id, cover_url, caption='{} - {}'.format(artist, album), disable_notification=True)
