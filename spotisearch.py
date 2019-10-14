@@ -8,7 +8,7 @@ import requests
 from service import random_string
 import os
 from localsettings import *
-from helpers import in_db
+from service import in_db
 
 class SpootySearch():
     def __init__(self):

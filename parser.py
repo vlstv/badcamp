@@ -2,7 +2,7 @@ import requests
 import re
 import json
 from lxml import html
-from helpers import in_db
+from service import in_db
 
 def get_meta(response):
     tree = html.fromstring(response.text)

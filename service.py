@@ -135,3 +135,21 @@ def download_youtube(num, tmp_dir, tmp_song, url, name):
     with youtube_dl.YoutubeDL(download_options) as dl:
         dl.download([url])
     return (num, '{}/{}/{}.mp3'.format(UPLOAD_DIR, tmp_dir, tmp_song), name)
+
+def in_db(artist, album, chat_id):
+    cursor.execute('SELECT * FROM albums where name=%s and artist=%s', (album, artist))
+    result = cursor.fetchall()
+    if len(result) != 0:
+        #forward downloaded messages
+        album_id = result[0][0]
+        album = result[0][1]
+        cover_url = result[0][2]
+        artist = result[0][3]
+        cursor.execute('SELECT id FROM songs where album_id=%s', (album_id,))
+        songs_ids = cursor.fetchall()
+        #send cover
+        bot.send_photo(chat_id, cover_url, caption='{} - {}'.format(artist, album), disable_notification=True)
+        for song_id in songs_ids:
+            bot.forward_message(chat_id, STORAGE_GROUP_ID, song_id[0])
+    else:
+        return False
