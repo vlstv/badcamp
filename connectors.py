@@ -17,5 +17,3 @@ badcamp_db = mysql.connector.connect(
   database=DB_NAME,
   port=DB_PORT
 )
-
-cursor = badcamp_db.cursor()

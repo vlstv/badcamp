@@ -1,6 +1,6 @@
 from nameko.rpc import rpc, RpcProxy
 from localsettings import UPLOAD_DIR, STORAGE_GROUP_ID
-from connectors import bot, cursor, badcamp_db
+from connectors import bot, badcamp_db
 import requests
 import string
 import random
@@ -17,6 +17,7 @@ class Uploader(object):
     def upload(self, chat_id, order_list, tmp_dir, cover_path, artist, album, cover_url):
         try:
             #save album in db
+            cursor = badcamp_db.cursor()
             cursor.execute('INSERT INTO albums (name, cover, artist) VALUES (%s, %s, %s)', (album, cover_url, artist))
             badcamp_db.commit()
             album_id = cursor.lastrowid
@@ -44,6 +45,7 @@ class Uploader(object):
                 #save in db
                 cursor.execute('INSERT INTO songs (id, name, album_id) VALUES (%s, %s, %s)', (message_id, name, album_id))
                 badcamp_db.commit()
+                cursor.close()
         except Exception as e:
             return e
     @rpc
@@ -56,12 +58,14 @@ class Uploader(object):
             os.remove(song_path)
             os.rmdir('{}/{}'.format(UPLOAD_DIR, tmp_dir))
             #insert new
+            cursor = badcamp_db.cursor()
             cursor.execute('INSERT INTO songs (id, name, album_id) VALUES (%s, %s, %s)', (new_message_id, name, album_id))
             badcamp_db.commit()
             #delete old
             cursor.execute('Delete from songs where id={}'.format(song_id))
             badcamp_db.commit()
             bot.send_message(chat_id, 'Done! You can now re-download the whole album')
+            cursor.close()
         except Exception as e:
             return e
 
@@ -137,6 +141,7 @@ def download_youtube(num, tmp_dir, tmp_song, url, name):
     return (num, '{}/{}/{}.mp3'.format(UPLOAD_DIR, tmp_dir, tmp_song), name)
 
 def in_db(artist, album, chat_id):
+    cursor = badcamp_db.cursor()
     cursor.execute('SELECT * FROM albums where name=%s and artist=%s', (album, artist))
     result = cursor.fetchall()
     if len(result) != 0:
@@ -147,6 +152,7 @@ def in_db(artist, album, chat_id):
         artist = result[0][3]
         cursor.execute('SELECT id FROM songs where album_id=%s', (album_id,))
         songs_ids = cursor.fetchall()
+        cursor.close()
         #send cover
         bot.send_photo(chat_id, cover_url, caption='{} - {}'.format(artist, album), disable_notification=True)
         for song_id in songs_ids:
