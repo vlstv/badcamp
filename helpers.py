@@ -1,7 +1,7 @@
 import time
 import telebot
 from telebot import types
-from connectors import r, bot, cursor, badcamp_db
+from connectors import r, bot, badcamp_db
 from localsettings import RABBIT, STORAGE_GROUP_ID
 from parser import get_albums, get_songs
 from nameko.standalone.rpc import ClusterRpcProxy
