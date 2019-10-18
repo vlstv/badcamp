@@ -31,7 +31,6 @@ def call_get_songs(message, chat_id):
     #set user as active
     timestamp = int(time.time())
     r.zadd('active_users', {chat_id: timestamp})
-    r.expire('active_users', 604800)
     if 'album:' in message:
         url = r.hget('user:{}:search'.format(chat_id), message)
     else:
@@ -55,7 +54,6 @@ def call_get_spoti_albums(message, chat_id):
 def call_get_spoti_songs(message, chat_id):
     timestamp = int(time.time())
     r.zadd('active_users', {chat_id: timestamp})
-    r.expire('active_users', 604800)
     url = message
     spotisearch = SpootySearch()
     songs = spotisearch.get_songs(url, chat_id)
@@ -63,9 +61,11 @@ def call_get_spoti_songs(message, chat_id):
         rpc.downloader.download.call_async(songs, chat_id)
 
 def blame(chat_id, artist, album, song, url):
+    cursor = badcamp_db.cursor()
     cursor.execute('select songs.id, albums.id from songs , albums WHERE albums.name=%s and albums.artist=%s and \
         songs.album_id = albums.id and songs.name=%s', (album, artist, song))
     result = cursor.fetchall()
+    cursor.close()
     song_id = result[0][0]
     album_id = result[0][1]
     with ClusterRpcProxy(RABBIT) as rpc:
