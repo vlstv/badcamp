@@ -2,7 +2,7 @@ from localsettings import TOKEN, WEBHOOK_URL
 from parser import get_albums, get_songs, search
 from helpers import call_get_albums, call_get_songs, call_get_spoti_albums, call_get_spoti_songs, blame
 from service import random_string
-from connectors import r, bot
+from connectors import r, bot, app
 from flask import Flask
 import telebot
 from telebot import types
@@ -11,7 +11,6 @@ import json
 import re
 from spotisearch import SpootySearch
 
-app = Flask(__name__)
 
 @app.route('/', methods=['POST','GET'])
 def webhook():

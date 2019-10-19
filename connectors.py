@@ -3,6 +3,8 @@ from localsettings import DB_HOST, DB_NAME, DB_PASSWORD, DB_PORT, DB_USER
 import mysql.connector
 import telebot
 import redis
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
 
 r = redis.Redis(
     host=REDIS_HOST,
@@ -10,10 +12,6 @@ r = redis.Redis(
 
 bot = telebot.TeleBot(TOKEN, threaded=False)
 
-badcamp_db = mysql.connector.connect(
-  host=DB_HOST,
-  user=DB_USER,
-  passwd=DB_PASSWORD,
-  database=DB_NAME,
-  port=DB_PORT
-)
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://{}:{}@{}/{}?host={}?port={}'.format(DB_USER, DB_PASSWORD, DB_HOST, DB_NAME, DB_HOST, DB_PORT)
+db = SQLAlchemy(app)

@@ -1,12 +1,13 @@
 import time
 import telebot
 from telebot import types
-from connectors import r, bot, badcamp_db
+from connectors import r, bot
 from localsettings import RABBIT, STORAGE_GROUP_ID
 from parser import get_albums, get_songs
 from nameko.standalone.rpc import ClusterRpcProxy
 from service import random_string
 from spotisearch import SpootySearch
+from models import Albums, Songs
 
 def call_get_albums(message, chat_id):
     if 'band:' in message:
@@ -61,12 +62,10 @@ def call_get_spoti_songs(message, chat_id):
         rpc.downloader.download.call_async(songs, chat_id)
 
 def blame(chat_id, artist, album, song, url):
-    cursor = badcamp_db.cursor()
-    cursor.execute('select songs.id, albums.id from songs , albums WHERE albums.name=%s and albums.artist=%s and \
-        songs.album_id = albums.id and songs.name=%s', (album, artist, song))
-    result = cursor.fetchall()
-    cursor.close()
-    song_id = result[0][0]
-    album_id = result[0][1]
-    with ClusterRpcProxy(RABBIT) as rpc:
-        rpc.downloader.blame.call_async(chat_id, album_id, song_id, url, song, artist)
+    try:
+        album_id = Albums.query.filter_by(artist=artist, name=album).first().id
+        song_id = Songs.query.filter_by(album_id=album_id, name=song).first().id
+        with ClusterRpcProxy(RABBIT) as rpc:
+            rpc.downloader.blame.call_async(chat_id, album_id, song_id, url, song, artist)
+    except Exception as e:
+        bot.send_message(chat_id, e)

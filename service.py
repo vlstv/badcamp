@@ -1,6 +1,7 @@
 from nameko.rpc import rpc, RpcProxy
 from localsettings import UPLOAD_DIR, STORAGE_GROUP_ID
-from connectors import bot, badcamp_db
+from connectors import bot, db
+from models import Songs, Albums
 import requests
 import string
 import random
@@ -17,10 +18,10 @@ class Uploader(object):
     def upload(self, chat_id, order_list, tmp_dir, cover_path, artist, album, cover_url):
         try:
             #save album in db
-            cursor = badcamp_db.cursor()
-            cursor.execute('INSERT INTO albums (name, cover, artist) VALUES (%s, %s, %s)', (album, cover_url, artist))
-            badcamp_db.commit()
-            album_id = cursor.lastrowid
+            a = Albums(name=album,cover=cover_url,artist=artist)
+            db.session.add(a)
+            db.session.commit()
+            album_id = a.id
             album_messages = []
             #upload cover to storage group
             cover = open(cover_path, 'rb')
@@ -43,9 +44,9 @@ class Uploader(object):
                 message_id = album_message[1]
                 bot.forward_message(chat_id, STORAGE_GROUP_ID, message_id)
                 #save in db
-                cursor.execute('INSERT INTO songs (id, name, album_id) VALUES (%s, %s, %s)', (message_id, name, album_id))
-                badcamp_db.commit()
-                cursor.close()
+                s = Songs(id=message_id,name=name,album_id=album_id)
+                db.session.add(s)
+                db.session.commit()
         except Exception as e:
             return e
     @rpc
@@ -58,14 +59,14 @@ class Uploader(object):
             os.remove(song_path)
             os.rmdir('{}/{}'.format(UPLOAD_DIR, tmp_dir))
             #insert new
-            cursor = badcamp_db.cursor()
-            cursor.execute('INSERT INTO songs (id, name, album_id) VALUES (%s, %s, %s)', (new_message_id, name, album_id))
-            badcamp_db.commit()
+            s = Songs(id=new_message_id,name=name,album_id=album_id)
             #delete old
-            cursor.execute('Delete from songs where id={}'.format(song_id))
-            badcamp_db.commit()
+            d = Songs.query.filter_by(id=song_id).first()
+            #commit seesion
+            db.session.add(s)
+            db.session.delete(d)
+            db.session.commit()
             bot.send_message(chat_id, 'Done! You can now re-download the whole album')
-            cursor.close()
         except Exception as e:
             return e
 
@@ -117,7 +118,6 @@ class Downloader(object):
         except Exception as e:
             return e
 
-
 def download_badcamp(num, tmp_dir, tmp_song, url, name):
     r = requests.get(url)
     with open('{}/{}/{}.mp3'.format(UPLOAD_DIR, tmp_dir, tmp_song), 'wb') as f:
@@ -141,21 +141,13 @@ def download_youtube(num, tmp_dir, tmp_song, url, name):
     return (num, '{}/{}/{}.mp3'.format(UPLOAD_DIR, tmp_dir, tmp_song), name)
 
 def in_db(artist, album, chat_id):
-    cursor = badcamp_db.cursor()
-    cursor.execute('SELECT * FROM albums where name=%s and artist=%s', (album, artist))
-    result = cursor.fetchall()
-    if len(result) != 0:
+    album = Albums.query.filter_by(artist=artist, name=album).first()
+    if album != None:
         #forward downloaded messages
-        album_id = result[0][0]
-        album = result[0][1]
-        cover_url = result[0][2]
-        artist = result[0][3]
-        cursor.execute('SELECT id FROM songs where album_id=%s', (album_id,))
-        songs_ids = cursor.fetchall()
-        cursor.close()
+        songs = Songs.query.filter_by(album_id=album.id).all()
         #send cover
-        bot.send_photo(chat_id, cover_url, caption='{} - {}'.format(artist, album), disable_notification=True)
-        for song_id in songs_ids:
-            bot.forward_message(chat_id, STORAGE_GROUP_ID, song_id[0])
+        bot.send_photo(chat_id, album.cover, caption='{} - {}'.format(album.artist, album.name), disable_notification=True)
+        for song in songs:
+            bot.forward_message(chat_id, STORAGE_GROUP_ID, song.id)
     else:
         return False
