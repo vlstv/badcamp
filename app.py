@@ -10,7 +10,6 @@ import json
 import re
 from spotisearch import SpootySearch
 
-
 @app.route('/', methods=['POST','GET'])
 def webhook():
     if flask.request.headers.get('content-type') == 'application/json':
@@ -59,27 +58,27 @@ def handle_start(message):
 def callback_inline(call):
     try:
         if call.message:
+            #Remove markup to prevent doubleclicks 
+            bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=None)
             if 'album' in call.data:
-                call_get_songs(call.data, call.message.chat.id)
                 bot.send_message(call.message.chat.id, '👾 Your download has been started,\
                                             it can take several minutes depending on server load. Please be patient')
+                call_get_songs(call.data, call.message.chat.id)
             elif 'spotify_artist' in call.data:
                 call_get_spoti_albums(call.data.split(':')[1], call.message.chat.id)
             elif 'spotify_al' in call.data:
-                call_get_spoti_songs(call.data.split(':')[1], call.message.chat.id)
                 bot.send_message(call.message.chat.id, '👾 Your download has been started,\
                                             it can take several minutes depending on server load. Please be patient')
+                call_get_spoti_songs(call.data.split(':')[1], call.message.chat.id)
             elif 'bandcamp_search' in call.data:
                 badcamp_search(call.message.chat.id, call.data.split(':')[1])
             elif 'spoti_search' in call.data:
                 spoti_search(call.message.chat.id, call.data.split(':')[1])
             else:
                 call_get_albums(call.data, call.message.chat.id)
-            #Remove markup to prevent doubleclicks 
-            bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=None)
+
     except Exception as e:
         bot.send_message(call.message.chat.id, e)
-
 
 bot.set_webhook(WEBHOOK_URL)
 
