@@ -3,7 +3,7 @@ import telebot
 from telebot import types
 from connectors import r, bot
 from localsettings import RABBIT, STORAGE_GROUP_ID
-from parser import get_albums, get_songs
+from parser import get_albums, get_songs, search
 from nameko.standalone.rpc import ClusterRpcProxy
 from service import random_string
 from spotisearch import SpootySearch
@@ -25,7 +25,7 @@ def call_get_albums(message, chat_id):
             r.hset(search_key, callback, album['url'])
             r.expire(search_key, 240)
         key.add(types.InlineKeyboardButton(album['name'], callback_data=callback))
-    text = 'Select album:'
+    text = '👾 Select album:'
     bot.send_message(chat_id, text, reply_markup=key)
 
 def call_get_songs(message, chat_id):
@@ -49,7 +49,7 @@ def call_get_spoti_albums(message, chat_id):
     for album in albums:
         callback = 'spotify_al:' + album['url']
         key.add(types.InlineKeyboardButton(album['name'], callback_data=callback))
-    text = 'Select album:'
+    text = '👾 Select album:'
     bot.send_message(chat_id, text, reply_markup=key)
 
 def call_get_spoti_songs(message, chat_id):
@@ -69,3 +69,36 @@ def blame(chat_id, artist, album, song, url):
             rpc.downloader.blame.call_async(chat_id, album_id, song_id, url, song, artist)
     except Exception as e:
         bot.send_message(chat_id, e)
+
+def badcamp_search(chat_id, query):
+    results = search(query)
+    key = types.InlineKeyboardMarkup()
+    for result in results:
+        if len(result['url']) <= 64:
+            callback = result['url']
+        else:
+            search_key = 'user:{}:search'.format(chat_id)
+            if result['type'] == 'album':
+                callback = 'album:{}'.format(random_string())
+                r.hset(search_key, callback, result['url'])
+                r.expire(search_key, 240)
+            elif result['type'] == 'band':
+                callback = 'band:{}'.format(random_string())
+                r.hset(search_key, callback, result['url'])
+                r.expire(search_key, 240)
+        if result['type'] == 'album':
+            key.add(types.InlineKeyboardButton('{} - {} ({})'.format(result['band'], result['album'], result['type']), callback_data=callback))
+        if result['type'] == 'band':
+            key.add(types.InlineKeyboardButton('{} ({})'.format(result['band'], result['type']), callback_data=callback))
+    text = '👾 Select resource:'
+    bot.send_message(chat_id, text, reply_markup=key)
+
+def spoti_search(chat_id, query):
+    spootisearch = SpootySearch()
+    results = spootisearch.get_artists(query)
+    key = types.InlineKeyboardMarkup()
+    for result in results:
+        callback = 'spotify_artist:' + result['url']
+        key.add(types.InlineKeyboardButton('{} ({})'.format(result['band'], result['type']), callback_data=callback))
+    text = '👾 Select resource:'
+    bot.send_message(chat_id, text, reply_markup=key)

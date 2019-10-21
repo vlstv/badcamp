@@ -1,6 +1,5 @@
 from localsettings import TOKEN, WEBHOOK_URL
-from parser import get_albums, get_songs, search
-from helpers import call_get_albums, call_get_songs, call_get_spoti_albums, call_get_spoti_songs, blame
+from helpers import call_get_albums, call_get_songs, call_get_spoti_albums, call_get_spoti_songs, blame, badcamp_search, spoti_search
 from service import random_string
 from connectors import r, bot, app
 from flask import Flask
@@ -36,46 +35,13 @@ def blame_song(message):
         bot.send_message(message.chat.id, e)
 
 @bot.message_handler(commands=['search'])
-def handle_search(message):
+def handle_test(message):
     try:
-        arg = message.text.replace('/search ', '')
-        results = search(arg)
+        query = message.text.replace('/search ', '')
         key = types.InlineKeyboardMarkup()
-        for result in results:
-            if len(result['url']) <= 64:
-                callback = result['url']
-            else:
-                search_key = 'user:{}:search'.format(message.chat.id)
-                if result['type'] == 'album':
-                    callback = 'album:{}'.format(random_string())
-                    r.hset(search_key, callback, result['url'])
-                    r.expire(search_key, 240)
-                elif result['type'] == 'band':
-                    callback = 'band:{}'.format(random_string())
-                    r.hset(search_key, callback, result['url'])
-                    r.expire(search_key, 240)
-            if result['type'] == 'album':
-                key.add(types.InlineKeyboardButton('{} - {} ({})'.format(result['band'], result['album'], result['type']), callback_data=callback))
-            if result['type'] == 'band':
-                key.add(types.InlineKeyboardButton('{} ({})'.format(result['band'], result['type']), callback_data=callback))
-        text = 'Select resource:'
-        bot.send_message(message.chat.id, text, reply_markup=key)
-    except Exception as e:
-        bot.send_message(message.chat.id, e)
-
-#spotiserch test
-@bot.message_handler(commands=['spoti'])
-def handle_spoti(message):
-    try:
-        arg = message.text.replace('/spoti ', '')
-        spootisearch = SpootySearch()
-        results = spootisearch.get_artists(arg)
-        key = types.InlineKeyboardMarkup()
-        for result in results:
-            callback = 'spotify_artist:' + result['url']
-            key.add(types.InlineKeyboardButton('{} ({})'.format(result['band'], result['type']), callback_data=callback))
-        text = 'Select resource:'
-        bot.send_message(message.chat.id, text, reply_markup=key)
+        key.add(types.InlineKeyboardButton('Search and download from bandcamp', callback_data='bandcamp_search:{}'.format(query)))
+        key.add(types.InlineKeyboardButton('Search in spotify, download from youtube', callback_data='spoti_search:{}'.format(query)))
+        bot.send_message(message.chat.id, '👾 Select search method:', reply_markup=key)
     except Exception as e:
         bot.send_message(message.chat.id, e)
 
@@ -95,14 +61,22 @@ def callback_inline(call):
         if call.message:
             if 'album' in call.data:
                 call_get_songs(call.data, call.message.chat.id)
+                bot.send_message(call.message.chat.id, '👾 Your download has been started,\
+                                            it can take several minutes depending on server load. Please be patient')
             elif 'spotify_artist' in call.data:
-                a = call.data.split(':')
-                call_get_spoti_albums(a[1], call.message.chat.id)
+                call_get_spoti_albums(call.data.split(':')[1], call.message.chat.id)
             elif 'spotify_al' in call.data:
-                a = call.data.split(':')
-                call_get_spoti_songs(a[1], call.message.chat.id)
+                call_get_spoti_songs(call.data.split(':')[1], call.message.chat.id)
+                bot.send_message(call.message.chat.id, '👾 Your download has been started,\
+                                            it can take several minutes depending on server load. Please be patient')
+            elif 'bandcamp_search' in call.data:
+                badcamp_search(call.message.chat.id, call.data.split(':')[1])
+            elif 'spoti_search' in call.data:
+                spoti_search(call.message.chat.id, call.data.split(':')[1])
             else:
                 call_get_albums(call.data, call.message.chat.id)
+            #Remove markup to prevent doubleclicks 
+            bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=None)
     except Exception as e:
         bot.send_message(call.message.chat.id, e)
 

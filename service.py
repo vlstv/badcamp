@@ -53,7 +53,6 @@ class Uploader(object):
     def upload_blame(self, chat_id, tmp_dir, song_path, artist, name, album_id, song_id):
         try:
             audio = open(song_path, 'rb')
-            print(song_path)
             message = bot.send_audio(STORAGE_GROUP_ID, audio, performer=artist, title=name, disable_notification=True)
             new_message_id = message.message_id
             os.remove(song_path)

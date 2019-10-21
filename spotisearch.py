@@ -72,5 +72,3 @@ class SpootySearch():
     def search_youtube_parse(self, songName):
         video = self.youtube_api.get('search', q=songName, maxResults=1, type='video', order='relevance')
         return "https://www.youtube.com/watch?v="+video["items"][0]["id"]["videoId"]
-
-
