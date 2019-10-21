@@ -36,11 +36,14 @@ def blame_song(message):
 @bot.message_handler(commands=['search'])
 def handle_test(message):
     try:
-        query = message.text.replace('/search ', '')
-        key = types.InlineKeyboardMarkup()
-        key.add(types.InlineKeyboardButton('Search and download from bandcamp', callback_data='bandcamp_search:{}'.format(query)))
-        key.add(types.InlineKeyboardButton('Search in spotify, download from youtube', callback_data='spoti_search:{}'.format(query)))
-        bot.send_message(message.chat.id, '👾 Select search method:', reply_markup=key)
+        if message == '/search':
+            bot.send_message(message.chat.id, '⚠️ What are you searching for?\n*Format*: _/search [artist/album]_', parse_mode='markdown')
+        else:
+            query = message.text.replace('/search ', '')
+            key = types.InlineKeyboardMarkup()
+            key.add(types.InlineKeyboardButton('Search and download from bandcamp', callback_data='bandcamp_search:{}'.format(query)))
+            key.add(types.InlineKeyboardButton('Search in spotify, download from youtube', callback_data='spoti_search:{}'.format(query)))
+            bot.send_message(message.chat.id, '👾 Select search method:', reply_markup=key)
     except Exception as e:
         bot.send_message(message.chat.id, e)
 
