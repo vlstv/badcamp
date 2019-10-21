@@ -36,7 +36,7 @@ def blame_song(message):
 @bot.message_handler(commands=['search'])
 def handle_test(message):
     try:
-        if message == '/search':
+        if message.text == '/search':
             bot.send_message(message.chat.id, '⚠️ What are you searching for?\n*Format*: _/search [artist/album]_', parse_mode='markdown')
         else:
             query = message.text.replace('/search ', '')
