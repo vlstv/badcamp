@@ -11,7 +11,7 @@ import re
 from spotisearch import SpootySearch
 import logging
 
-log = logging.getLogger(__name__)
+log = logging.getLogger('app')
 
 @app.route('/', methods=['POST','GET'])
 def webhook():
@@ -38,7 +38,7 @@ def blame_song(message):
             url = args[3]
             blame(message.chat.id, artist, album, song, url)
     except Exception as e:
-        bot.send_message(message.chat.id, e)
+        bot.send_message(message.chat.id, '⚠️ Oooops en error occurred, we are on it')
         log.error(e)
 
 @bot.message_handler(commands=['search'])
@@ -53,7 +53,7 @@ def handle_test(message):
             key.add(types.InlineKeyboardButton('Search in spotify, download from youtube', callback_data='spoti_search:{}'.format(query)))
             bot.send_message(message.chat.id, '👾 Select search method:', reply_markup=key)
     except Exception as e:
-        bot.send_message(message.chat.id, e)
+        bot.send_message(message.chat.id, '⚠️ Oooops en error occurred, we are on it')
         log.error(e)
 
 @bot.message_handler(content_types=['text'])
@@ -64,7 +64,7 @@ def handle_start(message):
         elif re.match(r'https:\/\/*.*\.bandcamp\.com\/', message.text):
             call_get_albums(message.text[:-1], message.chat.id)
     except Exception as e:
-        bot.send_message(message.chat.id, e)
+        bot.send_message(message.chat.id, '⚠️ Oooops en error occurred, we are on it')
         log.error(e)
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -91,7 +91,7 @@ def callback_inline(call):
                 call_get_albums(call.data, call.message.chat.id)
 
     except Exception as e:
-        bot.send_message(call.message.chat.id, e)
+        bot.send_message(call.message.chat.id, '⚠️ Oooops en error occurred, we are on it')
         log.error(e)
 
 bot.set_webhook(WEBHOOK_URL)

@@ -8,6 +8,9 @@ from nameko.standalone.rpc import ClusterRpcProxy
 from service import random_string
 from spotisearch import SpootySearch
 from models import Albums, Songs
+import logging
+
+log = logging.getLogger('helpers')
 
 def call_get_albums(message, chat_id):
     if 'band:' in message:
@@ -68,8 +71,7 @@ def blame(chat_id, artist, album, song, url):
         with ClusterRpcProxy(RABBIT) as rpc:
             rpc.downloader.blame.call_async(chat_id, album_id, song_id, url, song, artist)
     except Exception as e:
-        
-        bot.send_message(chat_id, e)
+        log.error(e)
 
 def badcamp_search(chat_id, query):
     results = search(query)
