@@ -51,7 +51,7 @@ class Uploader(object):
                 db.session.add(s)
             db.session.commit()
         except Exception as e:
-            bot.send_message(chat_id, '⚠️ Oooops en error occurred during album upload, we are on it')
+            bot.send_message(chat_id, '⚠️ Oooops, an error occurred during album upload, we are on it')
             log.error(e)
 
     @rpc
@@ -72,7 +72,7 @@ class Uploader(object):
             db.session.commit()
             bot.send_message(chat_id, 'Done! You can now re-download the whole album')
         except Exception as e:
-            bot.send_message(chat_id, '⚠️ Oooops en error occurred, we are on it')
+            bot.send_message(chat_id, '⚠️ Oooops, an error occurred, we are on it')
             log.error(e)
 
 class Downloader(object):
@@ -107,7 +107,7 @@ class Downloader(object):
             #call uploader
             self.uploader.upload.call_async(chat_id, order_list, tmp_dir, cover_path, artist, album, cover)
         except Exception as e:
-            bot.send_message(chat_id, '⚠️ Oooops en error occurred during album download, we are on it')
+            bot.send_message(chat_id, '⚠️ Oooops, an error occurred during album download, we are on it')
             log.error(e)
 
     @rpc
@@ -123,7 +123,7 @@ class Downloader(object):
             song_path = order_element[1]
             self.uploader.upload_blame.call_async(chat_id, tmp_dir, song_path, artist, name, album_id, song_id)
         except Exception as e:
-            bot.send_message(chat_id, '⚠️ Oooops en error occurred, we are on it')
+            bot.send_message(chat_id, '⚠️ Oooops, an error occurred, we are on it')
             log.error(e)
 
 def download_badcamp(num, tmp_dir, tmp_song, url, name):

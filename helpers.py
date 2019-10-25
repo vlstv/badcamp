@@ -19,17 +19,20 @@ def call_get_albums(message, chat_id):
         url = message
     albums = get_albums(url)
     key = types.InlineKeyboardMarkup()
-    for album in albums:
-        if len(album['url']) <= 64:
-            callback = album['url']
-        else:
-            search_key = 'user:{}:search'.format(chat_id)
-            callback = 'album:{}'.format(random_string())
-            r.hset(search_key, callback, album['url'])
-            r.expire(search_key, 240)
-        key.add(types.InlineKeyboardButton(album['name'], callback_data=callback))
-    text = '👾 Select album:'
-    bot.send_message(chat_id, text, reply_markup=key)
+    if len(albums) != 0:
+        for album in albums:
+            if len(album['url']) <= 64:
+                callback = album['url']
+            else:
+                search_key = 'user:{}:search'.format(chat_id)
+                callback = 'album:{}'.format(random_string())
+                r.hset(search_key, callback, album['url'])
+                r.expire(search_key, 240)
+            key.add(types.InlineKeyboardButton(album['name'], callback_data=callback))
+        text = '👾 Select album:'
+        bot.send_message(chat_id, text, reply_markup=key)
+    else:
+        bot.send_message(chat_id, '⚠️ Nothing found')
 
 def call_get_songs(message, chat_id):
     #set user as active
@@ -49,11 +52,14 @@ def call_get_spoti_albums(message, chat_id):
     spotisearch = SpootySearch()
     albums = spotisearch.get_albums(url)
     key = types.InlineKeyboardMarkup()
-    for album in albums:
-        callback = 'spotify_al:' + album['url']
-        key.add(types.InlineKeyboardButton(album['name'], callback_data=callback))
-    text = '👾 Select album:'
-    bot.send_message(chat_id, text, reply_markup=key)
+    if len(albums) != 0:
+        for album in albums:
+            callback = 'spotify_al:' + album['url']
+            key.add(types.InlineKeyboardButton(album['name'], callback_data=callback))
+        text = '👾 Select album:'
+        bot.send_message(chat_id, text, reply_markup=key)
+    else:
+        bot.send_message(chat_id, '⚠️ Nothing found')
 
 def call_get_spoti_songs(message, chat_id):
     timestamp = int(time.time())
@@ -76,32 +82,38 @@ def blame(chat_id, artist, album, song, url):
 def badcamp_search(chat_id, query):
     results = search(query)
     key = types.InlineKeyboardMarkup()
-    for result in results:
-        if len(result['url']) <= 64:
-            callback = result['url']
-        else:
-            search_key = 'user:{}:search'.format(chat_id)
+    if len(results) != 0:
+        for result in results:
+            if len(result['url']) <= 64:
+                callback = result['url']
+            else:
+                search_key = 'user:{}:search'.format(chat_id)
+                if result['type'] == 'album':
+                    callback = 'album:{}'.format(random_string())
+                    r.hset(search_key, callback, result['url'])
+                    r.expire(search_key, 240)
+                elif result['type'] == 'band':
+                    callback = 'band:{}'.format(random_string())
+                    r.hset(search_key, callback, result['url'])
+                    r.expire(search_key, 240)
             if result['type'] == 'album':
-                callback = 'album:{}'.format(random_string())
-                r.hset(search_key, callback, result['url'])
-                r.expire(search_key, 240)
-            elif result['type'] == 'band':
-                callback = 'band:{}'.format(random_string())
-                r.hset(search_key, callback, result['url'])
-                r.expire(search_key, 240)
-        if result['type'] == 'album':
-            key.add(types.InlineKeyboardButton('{} - {} ({})'.format(result['band'], result['album'], result['type']), callback_data=callback))
-        if result['type'] == 'band':
-            key.add(types.InlineKeyboardButton('{} ({})'.format(result['band'], result['type']), callback_data=callback))
-    text = '👾 Select resource:'
-    bot.send_message(chat_id, text, reply_markup=key)
+                key.add(types.InlineKeyboardButton('{} - {} ({})'.format(result['band'], result['album'], result['type']), callback_data=callback))
+            if result['type'] == 'band':
+                key.add(types.InlineKeyboardButton('{} ({})'.format(result['band'], result['type']), callback_data=callback))
+        text = '👾 Select resource:'
+        bot.send_message(chat_id, text, reply_markup=key)
+    else:
+        bot.send_message(chat_id, '⚠️ Nothing found')
 
 def spoti_search(chat_id, query):
     spootisearch = SpootySearch()
     results = spootisearch.get_artists(query)
-    key = types.InlineKeyboardMarkup()
-    for result in results:
-        callback = 'spotify_artist:' + result['url']
-        key.add(types.InlineKeyboardButton('{} ({})'.format(result['band'], result['type']), callback_data=callback))
-    text = '👾 Select resource:'
-    bot.send_message(chat_id, text, reply_markup=key)
+    if len(results) != 0:
+        key = types.InlineKeyboardMarkup()
+        for result in results:
+            callback = 'spotify_artist:' + result['url']
+            key.add(types.InlineKeyboardButton('{} ({})'.format(result['band'], result['type']), callback_data=callback))
+        text = '👾 Select resource:'
+        bot.send_message(chat_id, text, reply_markup=key)
+    else:
+        bot.send_message(chat_id, '⚠️ Nothing found')
