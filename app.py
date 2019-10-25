@@ -27,8 +27,8 @@ def webhook():
 def blame_song(message):
     try:
         if message.text == '/blame':
-            bot.send_message(message.chat.id, '⚠️ Use /blame command to report for a wrong track downloaded from youtube. Please follow this syntax:\n \
-                        /blame Artist\nAlbum\nSong\nURL from youtube', parse_mode='markdown')
+            bot.send_message(message.chat.id, '⚙️ Use /blame command to report for a wrong track downloaded from youtube. Please follow this syntax:\n\n\
+                /blame Artist\nAlbum\nSong\nURL from youtube', parse_mode='markdown')
         else:
             args = message.text.replace('/blame ', '')
             args = args.split('\n')
@@ -45,7 +45,7 @@ def blame_song(message):
 def handle_test(message):
     try:
         if message.text == '/search':
-            bot.send_message(message.chat.id, '⚠️ What are you searching for?\n*Format*: _/search [artist/album]_', parse_mode='markdown')
+            bot.send_message(message.chat.id, '⚙️ What are you searching for?\n*Format*: _/search [artist/album]_', parse_mode='markdown')
         else:
             query = message.text.replace('/search ', '')
             key = types.InlineKeyboardMarkup()
