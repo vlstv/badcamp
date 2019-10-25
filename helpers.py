@@ -43,9 +43,9 @@ def call_get_songs(message, chat_id):
     else:
         url = message
     songs = get_songs(url, chat_id)
-
-    with ClusterRpcProxy(RABBIT) as rpc:
-        rpc.downloader.download.call_async(songs, chat_id)
+    if songs != None:
+        with ClusterRpcProxy(RABBIT) as rpc:
+            rpc.downloader.download.call_async(songs, chat_id)
 
 def call_get_spoti_albums(message, chat_id):
     url = message
@@ -67,8 +67,9 @@ def call_get_spoti_songs(message, chat_id):
     url = message
     spotisearch = SpootySearch()
     songs = spotisearch.get_songs(url, chat_id)
-    with ClusterRpcProxy(RABBIT) as rpc:
-        rpc.downloader.download.call_async(songs, chat_id)
+    if songs != None:
+        with ClusterRpcProxy(RABBIT) as rpc:
+            rpc.downloader.download.call_async(songs, chat_id)
 
 def blame(chat_id, artist, album, song, url):
     try:
