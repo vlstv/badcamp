@@ -1,5 +1,5 @@
 from nameko.rpc import rpc, RpcProxy
-from localsettings import UPLOAD_DIR, STORAGE_GROUP_ID
+from localsettings import UPLOAD_DIR, STORAGE_GROUP_ID, LOG_LOCATION 
 from connectors import bot, db
 from models import Songs, Albums
 import requests
@@ -10,6 +10,7 @@ import os
 import youtube_dl
 import logging
 
+logging.basicConfig(filename=LOG_LOCATION, level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 log = logging.getLogger('service')
 
 def random_string():
