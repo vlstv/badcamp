@@ -8,6 +8,9 @@ import random
 import json
 import os
 import youtube_dl
+import logging
+
+log = logging.getLogger(__name__)
 
 def random_string():
     return ''.join(random.choice(string.ascii_lowercase + string.digits) for i in range(8))
@@ -46,8 +49,9 @@ class Uploader(object):
                 #save in db
                 s = Songs(id=message_id,name=name,album_id=album_id)
                 db.session.add(s)
-                db.session.commit()
+            db.session.commit()
         except Exception as e:
+            log.error(e)
             return e
     @rpc
     def upload_blame(self, chat_id, tmp_dir, song_path, artist, name, album_id, song_id):
@@ -67,6 +71,7 @@ class Uploader(object):
             db.session.commit()
             bot.send_message(chat_id, 'Done! You can now re-download the whole album')
         except Exception as e:
+            log.error(e)
             return e
 
 class Downloader(object):
@@ -101,6 +106,7 @@ class Downloader(object):
             #call uploader
             self.uploader.upload.call_async(chat_id, order_list, tmp_dir, cover_path, artist, album, cover)
         except Exception as e:
+            log.error(e)
             return e
     @rpc
     def blame(self, chat_id, album_id, song_id, url, name, artist):
@@ -115,6 +121,7 @@ class Downloader(object):
             song_path = order_element[1]
             self.uploader.upload_blame.call_async(chat_id, tmp_dir, song_path, artist, name, album_id, song_id)
         except Exception as e:
+            log.error(e)
             return e
 
 def download_badcamp(num, tmp_dir, tmp_song, url, name):

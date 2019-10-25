@@ -68,6 +68,7 @@ def blame(chat_id, artist, album, song, url):
         with ClusterRpcProxy(RABBIT) as rpc:
             rpc.downloader.blame.call_async(chat_id, album_id, song_id, url, song, artist)
     except Exception as e:
+        
         bot.send_message(chat_id, e)
 
 def badcamp_search(chat_id, query):

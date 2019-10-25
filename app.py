@@ -9,6 +9,9 @@ import flask
 import json
 import re
 from spotisearch import SpootySearch
+import logging
+
+log = logging.getLogger(__name__)
 
 @app.route('/', methods=['POST','GET'])
 def webhook():
@@ -23,15 +26,20 @@ def webhook():
 @bot.message_handler(commands=['blame'])
 def blame_song(message):
     try:
-        args = message.text.replace('/blame ', '')
-        args = args.split('\n')
-        artist = args[0]
-        album = args[1]
-        song = args[2]
-        url = args[3]
-        blame(message.chat.id, artist, album, song, url)
+        if message.text == '/blame':
+            bot.send_message(message.chat.id, '⚠️ Use /blame command to report for a wrong track downloaded from youtube. Please follow this syntax:\n \
+                        /blame Artist\nAlbum\nSong\nURL from youtube', parse_mode='markdown')
+        else:
+            args = message.text.replace('/blame ', '')
+            args = args.split('\n')
+            artist = args[0]
+            album = args[1]
+            song = args[2]
+            url = args[3]
+            blame(message.chat.id, artist, album, song, url)
     except Exception as e:
         bot.send_message(message.chat.id, e)
+        log.error(e)
 
 @bot.message_handler(commands=['search'])
 def handle_test(message):
@@ -46,6 +54,7 @@ def handle_test(message):
             bot.send_message(message.chat.id, '👾 Select search method:', reply_markup=key)
     except Exception as e:
         bot.send_message(message.chat.id, e)
+        log.error(e)
 
 @bot.message_handler(content_types=['text'])
 def handle_start(message):
@@ -56,6 +65,7 @@ def handle_start(message):
             call_get_albums(message.text[:-1], message.chat.id)
     except Exception as e:
         bot.send_message(message.chat.id, e)
+        log.error(e)
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
@@ -82,6 +92,7 @@ def callback_inline(call):
 
     except Exception as e:
         bot.send_message(call.message.chat.id, e)
+        log.error(e)
 
 bot.set_webhook(WEBHOOK_URL)
 
