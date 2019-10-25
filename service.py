@@ -42,13 +42,15 @@ class Uploader(object):
             os.remove(cover_path)
             os.rmdir('{}/{}'.format(UPLOAD_DIR, tmp_dir))
             #forward from storage group
+            order_id = 0
             for album_message in album_messages:
                 name = album_message[0]
                 message_id = album_message[1]
                 bot.forward_message(chat_id, STORAGE_GROUP_ID, message_id)
                 #save in db
-                s = Songs(id=message_id,name=name,album_id=album_id)
+                s = Songs(id=message_id,name=name,album_id=album_id, order_id=order_id)
                 db.session.add(s)
+                order_id += 1
             db.session.commit()
         except Exception as e:
             bot.send_message(chat_id, '⚠️ Oooops, an error occurred during album upload, we are on it')
@@ -62,13 +64,8 @@ class Uploader(object):
             new_message_id = message.message_id
             os.remove(song_path)
             os.rmdir('{}/{}'.format(UPLOAD_DIR, tmp_dir))
-            #insert new
-            s = Songs(id=new_message_id,name=name,album_id=album_id)
-            #delete old
             d = Songs.query.filter_by(id=song_id).first()
-            #commit seesion
-            db.session.add(s)
-            db.session.delete(d)
+            d.id = new_message_id
             db.session.commit()
             bot.send_message(chat_id, 'Done! You can now re-download the whole album')
         except Exception as e:
@@ -152,7 +149,7 @@ def in_db(artist, album, chat_id):
     album = Albums.query.filter_by(artist=artist, name=album).first()
     if album != None:
         #forward downloaded messages
-        songs = Songs.query.filter_by(album_id=album.id).all()
+        songs = Songs.query.filter_by(album_id=album.id).all().order_by(Songs.order_id)
         #send cover
         bot.send_photo(chat_id, album.cover, caption='{} - {}'.format(album.artist, album.name), disable_notification=True)
         for song in songs:
