@@ -33,9 +33,12 @@ class Uploader(object):
             for info in order_list:
                 file = info[1]
                 name = info[2]
-                audio = open(file, 'rb')
-                message = bot.send_audio(STORAGE_GROUP_ID, audio, performer=artist, title=name, disable_notification=True)
-                album_messages.append([name,message.message_id])
+                try:
+                    audio = open(file, 'rb')
+                    message = bot.send_audio(STORAGE_GROUP_ID, audio, performer=artist, title=name, disable_notification=True)
+                    album_messages.append([name,message.message_id])
+                except Exception as e:
+                    bot.send_message(chat_id, '⚠️ Error, skipping track - {}. Reason:\n{}'.format(name, e))
                 os.remove(file)
             #upload cover to chat
             cover = open(cover_path, 'rb')
