@@ -150,7 +150,7 @@ def in_db(artist, album, chat_id):
     album = Albums.query.filter_by(artist=artist, name=album).first()
     if album != None:
         #forward downloaded messages
-        songs = Songs.query.filter_by(album_id=album.id).all().order_by(Songs.order_id)
+        songs = Songs.query.filter_by(album_id=album.id).order_by(Songs.order_id)
         #send cover
         bot.send_photo(chat_id, album.cover, caption='{} - {}'.format(album.artist, album.name), disable_notification=True)
         for song in songs:
