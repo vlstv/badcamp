@@ -13,7 +13,7 @@ class Songs(db.Model):
     id = db.Column('id', db.Integer, primary_key = True)
     name = db.Column(db.String(100))
     album_id = db.Column(db.String(100))
-    order_id = db.Column(db.String(100))
+    order_id = db.Column(db.Integer(100))
 
     def __repr__(self):
         return '<Songs %r>' % self.name
