@@ -2,6 +2,7 @@ import requests
 import re
 import json
 from lxml import html
+from service import in_db
 
 def get_meta(response):
     tree = html.fromstring(response.text)
@@ -22,15 +23,17 @@ def get_song_list(response):
             pass
     return song_list
 
-def get_songs(url):
+def get_songs(url, chat_id):
     response = requests.get(url)
     info = get_meta(response)
-    song_list = get_song_list(response)
-    if len(song_list) > 0:
-        info.update({'songs': song_list})
-        return info
-    else:
-        return False
+    #check if album already in db and forward from storage if yes
+    if in_db(info['artist'], info['album'], chat_id) == False:
+        song_list = get_song_list(response)
+        if len(song_list) > 0:
+            info.update({'songs': song_list})
+            return info
+        else:
+            return False
 
 def get_albums(url):
     response = requests.get(url)
