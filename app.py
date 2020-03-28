@@ -1,5 +1,5 @@
 from localsettings import TOKEN, WEBHOOK_URL
-from helpers import call_get_albums, call_get_songs, call_get_spoti_albums, call_get_spoti_songs, blame, badcamp_search, spoti_search
+from helpers import call_get_albums, call_get_songs, call_get_spoti_albums, call_get_spoti_songs, blame, badcamp_search, spoti_search, call_get_single_song
 from service import random_string
 from connectors import r, bot, app
 from flask import Flask
@@ -63,6 +63,8 @@ def handle_start(message):
             call_get_songs(message.text, message.chat.id)
         elif re.match(r'https:\/\/*.*\.bandcamp\.com\/', message.text):
             call_get_albums(message.text[:-1], message.chat.id)
+        elif re.match(r'https:\/\/youtube\.com\/*', message.text):
+            call_get_single_song(message.text, message.chat.id)
     except Exception as e:
         bot.send_message(message.chat.id, '⚠️ Oooops, an error occurred, we are on it')
         log.error(e)

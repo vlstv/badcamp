@@ -118,3 +118,10 @@ def spoti_search(chat_id, query):
         bot.send_message(chat_id, text, reply_markup=key)
     else:
         bot.send_message(chat_id, '⚠️ Nothing found')
+
+def call_get_single_song(message, chat_id):
+    spotisearch = SpootySearch()
+    songs = spotisearch.get_song(url, chat_id)
+    if songs != None:
+        with ClusterRpcProxy(RABBIT) as rpc:
+            rpc.downloader.download.call_async(songs, chat_id)

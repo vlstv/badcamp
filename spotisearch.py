@@ -62,6 +62,14 @@ class SpootySearch():
             result_list.append(resource_info)
         return result_list
 
+    def get_song(self, url):
+        q = self.youtube_single_song(url)
+        results = self.spotify.search(q, limit=1, type='track')["tracks"]["items"]
+        song = results[0]['name']
+        cover = results[0]["album"]["images"][0]["url"]
+        artist = results[0]['album']['artists'][0]['name']
+        return {'artist': artist, 'album': song, 'cover': cover, "songs": [{0:[song, url]}]}
+
     def search_youtube_api(self, songName):
         url = "https://www.youtube.com/results?search_query=" + songName
         response = requests.get(url)
@@ -72,3 +80,9 @@ class SpootySearch():
     def search_youtube_parse(self, songName):
         video = self.youtube_api.get('search', q=songName, maxResults=1, type='video', order='relevance')
         return "https://www.youtube.com/watch?v="+video["items"][0]["id"]["videoId"]
+
+    def youtube_single_song(self, url):
+        response = requests.get(url)
+        tree = html.fromstring(response.text)
+        video_title = tree.xpath("//span[@id='eow-title']/@title") 
+        return video_title[0]
