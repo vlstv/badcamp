@@ -26,7 +26,7 @@ class Uploader(object):
                 a = Albums(name=album,cover=cover_url,artist=artist)
                 db.session.add(a)
                 db.session.commit()
-            album_id = a.id
+                album_id = a.id
             album_messages = []
             #upload cover to storage group
             cover = open(cover_path, 'rb')
