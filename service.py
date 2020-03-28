@@ -22,7 +22,7 @@ class Uploader(object):
     def upload(self, chat_id, order_list, tmp_dir, cover_path, artist, album, cover_url, single_song):
         try:
             #save album in db
-            if single_song=False:
+            if single_song == False:
                 a = Albums(name=album,cover=cover_url,artist=artist)
                 db.session.add(a)
                 db.session.commit()
@@ -53,11 +53,11 @@ class Uploader(object):
                 message_id = album_message[1]
                 bot.forward_message(chat_id, STORAGE_GROUP_ID, message_id)
                 #save in db
-                if single_song = False:
+                if single_song == False:
                     s = Songs(id=message_id,name=name,album_id=album_id, order_id=order_id)
                     db.session.add(s)
                     order_id += 1
-            if single_song = False:
+            if single_song == False:
                 db.session.commit()
         except Exception as e:
             bot.send_message(chat_id, '⚠️ Oooops, an error occurred during album upload, we are on it')
