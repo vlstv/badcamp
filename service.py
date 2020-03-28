@@ -19,12 +19,13 @@ def random_string():
 class Uploader(object):
     name = "uploader"
     @rpc
-    def upload(self, chat_id, order_list, tmp_dir, cover_path, artist, album, cover_url):
+    def upload(self, chat_id, order_list, tmp_dir, cover_path, artist, album, cover_url, single_song):
         try:
             #save album in db
-            a = Albums(name=album,cover=cover_url,artist=artist)
-            db.session.add(a)
-            db.session.commit()
+            if single_song=False:
+                a = Albums(name=album,cover=cover_url,artist=artist)
+                db.session.add(a)
+                db.session.commit()
             album_id = a.id
             album_messages = []
             #upload cover to storage group
@@ -52,10 +53,12 @@ class Uploader(object):
                 message_id = album_message[1]
                 bot.forward_message(chat_id, STORAGE_GROUP_ID, message_id)
                 #save in db
-                s = Songs(id=message_id,name=name,album_id=album_id, order_id=order_id)
-                db.session.add(s)
-                order_id += 1
-            db.session.commit()
+                if single_song = False:
+                    s = Songs(id=message_id,name=name,album_id=album_id, order_id=order_id)
+                    db.session.add(s)
+                    order_id += 1
+            if single_song = False:
+                db.session.commit()
         except Exception as e:
             bot.send_message(chat_id, '⚠️ Oooops, an error occurred during album upload, we are on it')
             log.error(e)
@@ -80,7 +83,7 @@ class Downloader(object):
     name = "downloader"
     uploader = RpcProxy('uploader')
     @rpc
-    def download(self, obj, chat_id):
+    def download(self, obj, chat_id, single_song=False):
         try:
             artist = obj["artist"]
             album = obj["album"]
@@ -106,7 +109,7 @@ class Downloader(object):
                         order_element = download_badcamp(num, tmp_dir, tmp_song, url, name)
                     order_list.append(order_element)
             #call uploader
-            self.uploader.upload.call_async(chat_id, order_list, tmp_dir, cover_path, artist, album, cover)
+            self.uploader.upload.call_async(chat_id, order_list, tmp_dir, cover_path, artist, album, cover, single_song)
         except Exception as e:
             bot.send_message(chat_id, '⚠️ Oooops, an error occurred during album download, we are on it')
             log.error(e)

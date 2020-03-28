@@ -124,4 +124,4 @@ def call_get_single_song(url, chat_id):
     songs = spotisearch.get_song(url)
     if songs != None:
         with ClusterRpcProxy(RABBIT) as rpc:
-            rpc.downloader.download.call_async(songs, chat_id)
+            rpc.downloader.download.call_async(songs, chat_id, True)
