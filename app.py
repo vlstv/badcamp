@@ -64,7 +64,10 @@ def handle_start(message):
         elif re.match(r'https:\/\/*.*\.bandcamp\.com\/', message.text):
             call_get_albums(message.text[:-1], message.chat.id)
         elif re.match(r'https:\/\/www\.youtube\.com\/*', message.text):
-            call_get_single_song(message.text, message.chat.id)
+            if 'list=' in message.text:
+                bot.send_message(message.chat.id, 'youtube playlists are not allowed, find a single song')
+            else:
+                call_get_single_song(message.text, message.chat.id)
     except Exception as e:
         bot.send_message(message.chat.id, '⚠️ Oooops, an error occurred, we are on it')
         log.error(e)
