@@ -65,9 +65,14 @@ class SpootySearch():
     def get_song(self, url):
         q = self.youtube_single_song(url)
         results = self.spotify.search(q, limit=1, type='track')["tracks"]["items"]
-        song = results[0]['name']
-        cover = results[0]["album"]["images"][0]["url"]
-        artist = results[0]['album']['artists'][0]['name']
+        try:
+            song = results[0]['name']
+            cover = results[0]["album"]["images"][0]["url"]
+            artist = results[0]['album']['artists'][0]['name']
+        except:
+            song = q.split('-')[0]
+            artist = q.split('-')[1]
+            cover = 'https://s3.amazonaws.com/production.mediajoint.prx.org/public/piece_images/571466/The_Unknown_small.jpg'
         return {'artist': artist, 'album': song, 'cover': cover, "songs": [{0:[song, url]}]}
 
     def search_youtube_api(self, songName):
