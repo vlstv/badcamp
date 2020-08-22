@@ -72,7 +72,8 @@ class SpootySearch():
         except:
             song = q.split('-')[0]
             artist = q.split('-')[1]
-            cover = 'https://s3.amazonaws.com/production.mediajoint.prx.org/public/piece_images/571466/The_Unknown_small.jpg'
+            hash = url.split('=')[1]
+            cover = 'https://img.youtube.com/vi/{}/maxresdefault.jpg'.format(hash)
         return {'artist': artist, 'album': song, 'cover': cover, "songs": [{0:[song, url]}]}
 
     def search_youtube_api(self, songName):
@@ -87,7 +88,6 @@ class SpootySearch():
         return "https://www.youtube.com/watch?v="+video["items"][0]["id"]["videoId"]
 
     def youtube_single_song(self, url):
-        response = requests.get(url)
-        tree = html.fromstring(response.text)
-        video_title = tree.xpath("//span[@id='eow-title']/@title") 
-        return video_title[0]
+        hash = url.split('=')[1]
+        video_title = self.youtube_api.get('videos', id=hash)["items"][0]["snippet"]["title"]
+        return video_title
