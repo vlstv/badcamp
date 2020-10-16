@@ -12,8 +12,8 @@ def get_meta(response):
     return {'artist': meta[1], 'album': meta[0], 'cover': cover}
 
 def get_song_list(response):
-    response = response.text
-    songs  = re.findall('trackinfo:[^]]*]', response)[0].replace('trackinfo:', '')
+    response = response.text.replace('&quot;',"''")
+    songs  = re.findall('trackinfo\':[^]]*]', response)[0].replace('trackinfo:', '')
     songs = json.loads(songs)
     song_list = []
     for song in songs:
