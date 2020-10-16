@@ -6,7 +6,7 @@ from service import in_db
 
 def get_meta(response):
     tree = html.fromstring(response.text)
-    cover = tree.xpath('//img[@itemprop="image"]/@src')[0]
+    cover = tree.xpath('//meta[@property="og:image"]/@content')[0]
     meta = tree.xpath('//meta[@name="title"]/@content')[0]
     meta = meta.split(', by ')
     return {'artist': meta[1], 'album': meta[0], 'cover': cover}
