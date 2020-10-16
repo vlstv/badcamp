@@ -3,6 +3,7 @@ import re
 import json
 from lxml import html
 from service import in_db
+import html as uhtml
 
 def get_meta(response):
     tree = html.fromstring(response.text)
@@ -12,7 +13,7 @@ def get_meta(response):
     return {'artist': meta[1], 'album': meta[0], 'cover': cover}
 
 def get_song_list(response):
-    response = response.text.replace('&quot;','"')
+    response = uhtml.unescape(response.text)
     songs  = re.findall('trackinfo\":[^]]*]', response)[0].replace('trackinfo\":', '')
     songs = json.loads(songs)
     song_list = []
